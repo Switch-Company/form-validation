@@ -1,0 +1,172 @@
+<!doctype html>
+<head>
+  <title>checkvalidity</title>
+  <style>
+      * {
+        margin: 0;
+        padding: 0;
+        border-width: 0;
+        box-sizing: border-box;
+      }
+
+      form {
+        margin: 27px;
+      }
+
+      fieldset {
+        border-width: 1px;
+        padding: 9px;
+        margin: 9px 0;
+        width: 30em;
+      }
+
+      fieldset p {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 18px 0;
+      }
+
+      input:not([type="checkbox"]):not([type="radio"]) {
+        border-bottom-width: 1px;
+        font-size: 1em;
+        font-family: inherit;
+        height: 27px;
+      }
+
+      button {
+        border: 1px solid;
+        background: none;
+        padding: 5px;
+        margin: 9px 0;
+      }
+
+      .field-error {
+        color: red;
+        border-color: red;
+      }
+  </style>
+</head>
+<html>
+<body>
+
+  <form action="" novalidate>
+    <fieldset name="you">
+      <legend>You</legend>
+      <p>
+        <label for="firstname">First name</label>
+        <input type="text" id="firstname" name="firstname" required />
+      </p>
+
+      <p>
+        <label for="lastname">Last name</label>
+        <input type="text" id="lastname" name="lastname" required data-match="firstname" />
+      </p>
+
+      <p>
+        <label for="email">E-mail address</label>
+        <input type="email" id="email" name="email" required />
+      </p>
+
+      <button class="check-validity" type="button" value="tutu">Check validity</button>
+    </fieldset>
+
+    <p contenteditable="true">toto</p>
+
+    <p>
+      <label for="cgv">
+        <span>I aggree to the term and conditions</span>
+        <input type="checkbox" id="cgv" required="required" name="cgv">
+      </label>
+    </p>
+
+    <button type="submit" value="tata">Submit</button>
+  </form>
+
+  <script src="./array-from.js"></script>
+  <script src="./array-find.js"></script>
+  <script src="./element-closest.js"></script>
+  <script src="./customEvent.js"></script>
+  <script src="../dist/formValidation.js"></script>
+
+  <script>
+    new formValidation( document.querySelector( 'form' ), {
+      customRules: [{
+        match: '[data-match]',
+        test: function( el ){
+          var shouldMatch = document.getElementById(el.dataset.match);
+
+          return shouldMatch && shouldMatch.value === el.value;
+        }
+      }]
+    });
+
+    document.body.addEventListener( 'submit', function(e) {
+      e.preventDefault();
+      var form = e.target;
+      var validator = form.validator;
+      /*form.checkValidity();
+
+      console.log(form.invalid);*/
+      if( !validator ){
+        validator = new formValidation( form );
+      }
+
+      console.log( validator.checkValidity());
+
+      console.log( validator.invalid );
+    })
+
+    document.body.addEventListener('invalid', function(e) {
+      var field = e.target;
+
+      if( !field.id ){
+        return
+      }
+
+      var label = document.querySelector('label[for='+ field.id + ']');
+      field.classList.add('field-error');
+
+      if( label ){
+        label.classList.add('field-error');
+      }
+    })
+
+    document.body.addEventListener('valid', function(e) {
+      var field = e.target;
+
+      if( !field.id ){
+        return
+      }
+
+      var label = document.querySelector('label[for='+ field.id + ']');
+      field.classList.remove('field-error');
+
+      if( label ){
+        label.classList.remove('field-error');
+      }
+    })
+
+    document.body.addEventListener('click', function(e){
+      var el = e.target;
+
+      if( !el.classList.contains('check-validity') ){
+        return;
+      }
+
+      var fieldset = el.closest('fieldset');
+
+      if( !fieldset ){
+        return;
+      }
+
+      var validator = fieldset.form.validator;
+
+      console.log( validator.checkValidity( fieldset ));
+
+      console.log( validator.fieldset( fieldset ).invalid );
+
+    });
+  </script>
+</body>
+</html>
