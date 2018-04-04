@@ -1,6 +1,6 @@
 {
   "name": "@switch-company/form-validation",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Extend checkvalidity of forms and trigger invalid and valid events on fields",
   "main": "dist/formValidation.js",
   "module": "lib/index.js",
