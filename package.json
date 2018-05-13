@@ -8,7 +8,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "build": "rollup -c && rollup -c rollup.config.minified.js",
+    "build": "rollup -c && cross-env NODE_ENV=production rollup -c",
     "version": "npm run build && git add -A dist",
     "postversion": "git push && git push --tags"
   },
@@ -21,6 +21,7 @@
     "email": "bonjour@switch.paris",
     "url": "http://switch.paris"
   },
+  "homepage": "https://www.npmjs.com/package/@switch-company/form-validation",
   "license": "ISC",
   "browserslist": [
     "> 1%",
@@ -28,9 +29,10 @@
     "IE 10"
   ],
   "devDependencies": {
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.3",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.1",
+    "cross-env": "^5.1.5",
     "eslint": "^4.19.1",
     "eslint-config-idiomatic": "^4.0.0",
     "rollup": "^0.57.1",
