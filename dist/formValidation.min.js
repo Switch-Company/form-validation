@@ -1,6 +1,6 @@
 /**
  * @switch-company/form-validation - Extend checkvalidity of forms and trigger invalid and valid events on fields
- * @version v1.0.0
+ * @version v1.0.1
  * @link https://www.npmjs.com/package/@switch-company/form-validation
  * @license ISC
  **/
