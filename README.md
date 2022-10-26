@@ -32,7 +32,7 @@ A custom validation rule is an object containing two entries:
 * `match`: A CSS selector matching the elements that you want the validator to test
 * `test`: A function that will test the element
 
-The test function must return `true`, `false`, or a custom `ValidityState` you want to return for this test. If the return value is `false` the `ValidityState` value will be `customMismatch`. When `true` the test succeed, otherwise it fails.
+The test function must return `true`, `false`, or a custom `ValidityState` you want to return for this test. If the return value is `false` the `ValidityState` value will be `customError`. When `true` the test succeed, otherwise it fails.
 
 ```js
 [
@@ -46,7 +46,7 @@ The test function must return `true`, `false`, or a custom `ValidityState` you w
     }
   },
   {
-    // the ValidityState value will return "customMismatch" if the test fails
+    // the ValidityState value will return "customError" if the test fails
     match: '[data-match]',
     test: el => {
       var shouldMatch = document.getElementById( el.dataset.match );
