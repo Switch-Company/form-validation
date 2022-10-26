@@ -102,6 +102,36 @@ Return `true` when valid, otherwise `false`.
   validator.checkValidity( document.querySelector( 'input' )); // returns `true` or `false` depending of the `input` validity state
 ```
 
+### `.setValidity(Object)`
+
+Set custom error messages on the form elements by passing an object with `[element name]: 'error message'`. Remove all custom errors by calling it without passing anything. Usually this method is used if the backend respond with some extra errors that the front-end can't or won't handle. For custom front-end errors, use custom rules by passing them when instanciating the constructor.
+
+```js
+  const form = document.querySelector( 'form' );
+  const validator = new Validator( form );
+
+  if(validator.checkValidity()){
+    // post the data if front-end doesn't see any errors
+    const backendResponse = await fetch('/endpoint', {
+      method: 'POST',
+      body: new FormData( form ),
+    }).then(r => r.json());
+
+    /*
+    * backendResponse.errors object will look like this:
+    * {
+    *   'postal-code': 'Cannot deliver to this postal code'
+    * }
+    */
+
+    if(backendResponse.errors){
+      // trigger an invalid event to the listed form elements
+      validator.setValidity(backendResponse.errors);
+    }
+  }
+```
+
+
 ### `.fieldset( HTMLFieldsetElement )`
 
 Return the validator instance of a `fieldset` contained in the `form`. This allows you to check the validity of the `fieldset`.
@@ -153,6 +183,8 @@ An `invalid` event is dispatched to any field failing to validate.
     console.log( e.target ); // return the field
 
     console.log( e.detail.validityState ); // return the current validityState of the field
+    console.log( e.detail.message ); // return the message set by the custom rule or the `.setValidity()` method
+    console.log( e.detail.wasValid ); // return `true` if the field was valid before calling `.checkValidity()`, `false` otherwise
   });
 ```
 
@@ -167,5 +199,6 @@ A `valid` event is dispatched to any field passing the validation.
     console.log( e.target ); // return the field
 
     console.log( e.detail.validityState ); // return the current validityState of the field
+    console.log( e.detail.wasInvalid ); // return `true` if the field was invalid before calling `.checkValidity()`, `false` otherwise
   });
 ```
