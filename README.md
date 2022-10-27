@@ -187,7 +187,7 @@ An `invalid` event is dispatched to any field failing to validate.
 
     console.log( e.detail.validityState ); // return the current validityState of the field
     console.log( e.detail.message ); // return the message set by the custom rule or the `.setValidity()` method
-    console.log( e.detail.wasValid ); // return `true` if the field was valid before calling `.checkValidity()`, `false` otherwise
+    console.log( e.detail.wasInvalid ); // return `true` if the field was invalid before calling `.checkValidity()`, `false` otherwise
   });
 ```
 
