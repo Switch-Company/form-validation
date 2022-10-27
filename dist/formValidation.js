@@ -11,7 +11,8 @@
   (global.formValidation = factory());
 }(this, (function () { 'use strict';
 
-  var matches = window.Element.prototype.matches || window.Element.prototype.matchesSelector || window.Element.prototype.mozMatchesSelector || window.Element.prototype.msMatchesSelector || window.Element.prototype.oMatchesSelector || window.Element.prototype.webkitMatchesSelector;
+  // store invalid values for future checks
+  var invalidValues = new Map();
 
   /**
    * trigger a bubbling event
@@ -34,20 +35,53 @@
     el.dispatchEvent(evt);
   }
 
+  /**
+   * check the validity of an input/select/textarea element
+   * @param {HTMLElement} el - the input/select/textarea to test
+   * @param {array} customValidators - array of custom validators to test against
+   */
   function checkValidity(el, customValidators) {
     var valid = el.validity.valid;
+    var wasInvalid = invalidValues.has(el.name);
     var status = {
-      validityState: 'valid'
+      validityState: 'valid',
+      wasInvalid: wasInvalid
     };
 
     // get the error status if there's an error
     if (!valid) {
+      var validityStates = [];
+
+      // get all the validity states
       for (var state in el.validity) {
-        // skip `customError` key as it only tell that `setCustomValidity()` has been setted
-        // stop when a state is found (different from valid)
-        if (status.validityState === 'valid' && el.validity[state] && state !== 'customError') {
-          status.validityState = state;
+        if (el.validity[state]) {
+          validityStates.push(state);
         }
+      }
+
+      // handle custom error set programaticaly
+      if (validityStates.includes('customError')) {
+        // get the previous invalid value of the input
+        var previousValue = invalidValues.get(el.name);
+        // only consider the customError state if the input
+        // was not previously invalid or if it's value didn't change
+        if (!wasInvalid || previousValue === el.value) {
+          // pass the custom message to the invalid event
+          status.message = el.validationMessage;
+          status.validityState = 'customError';
+        } else {
+          // in case the value changed
+          // don't consider the input being invalid
+          // because this customError state is either
+          // added by custom validators that are tested later in the code
+          // or by setValidity method that is called by external scripts
+          // and they can be called later on
+          valid = true;
+          // unset the customError validationMessage
+          el.setCustomValidity('');
+        }
+      } else {
+        status.validityState = validityStates[0];
       }
     }
 
@@ -57,14 +91,18 @@
       // loop over custom tests
       customValidators.every(function (validation) {
         // if field match execute the test
-        if (matches.call(el, validation.match)) {
+        if (el.matches(validation.match)) {
           var testResult = validation.test(el);
 
           // if testResult is falsy or a string it's an error
           if (!testResult || typeof testResult === 'string') {
-            // el.validity[ testResult || 'customMismatch' ] = true;
+            status.validityState = testResult || 'customError';
 
-            status.validityState = testResult || 'customMismatch';
+            if (validation.message) {
+              el.setCustomValidity(validation.message);
+
+              status.message = validation.message;
+            }
 
             return false;
           }
@@ -77,9 +115,16 @@
     }
 
     if (status.validityState === 'valid') {
+      invalidValues.delete(el.name);
       // trigger a valid event
       trigger(el, 'valid', status);
     } else {
+      invalidValues.set(el.name, el.value);
+
+      if (!status.message) {
+        status.message = '';
+      }
+
       // trigger a invalid event
       trigger(el, 'invalid', status);
     }
@@ -260,6 +305,13 @@
 
         return isValid;
       }
+
+      /**
+       * Check validity
+       * @param {HTMLElement} context - HTMLElement to check the validity from (input, textarea, select, form, fieldset)
+       * @return {Boolean} `true` if validation passes, `false` otherwise
+       */
+
     }, {
       key: 'checkValidity',
       value: function checkValidity() {
@@ -299,14 +351,46 @@
           });
         }
       }
+
+      /**
+       * Set custom errors
+       * @param {Object} - key-value pair of element name and error message
+       */
+
+    }, {
+      key: 'setValidity',
+      value: function setValidity() {
+        var _this2 = this;
+
+        var errors = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+        var elements = Array.from(this.el.elements);
+
+        elements.forEach(function (element) {
+          if (!element.willValidate || element.type === 'submit') {
+            return;
+          }
+
+          var validationMessage = element.validationMessage;
+          var customMessage = errors[element.name] || '';
+
+          element.setCustomValidity(customMessage);
+
+          // check input validity
+          // if the validation message changed
+          if (validationMessage !== customMessage) {
+            _this2._checkSingleValidity(element);
+          }
+        });
+      }
     }, {
       key: 'fieldsets',
       get: function get$$1() {
-        var _this2 = this;
+        var _this3 = this;
 
         return Array.from(this.el.querySelectorAll('fieldset')).map(function (fieldset) {
           return fieldset.validator || new Validator(fieldset, {
-            customRules: _this2._customRules
+            customRules: _this3._customRules
           });
         });
       }
