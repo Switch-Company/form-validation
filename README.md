@@ -42,16 +42,16 @@ The test function must return `true`, `false`, or a custom `ValidityState` you w
     // the ValidityState value will return "tooLong" if the test fails
     match: '[data-maxlength], [maxlength]',
     message: 'Too many characters',
-    test: el => {
-      var length = +( el.dataset.maxlength || el.getAttribute( 'maxlength' ));
+    test: (el) => {
+      const length = parseInt( el.dataset.maxlength || el.getAttribute( 'maxlength' ), 10);
       return el.value.length <= length ? true : 'tooLong';
     }
   },
   {
     // the ValidityState value will return "customError" if the test fails
     match: '[data-match]',
-    test: el => {
-      var shouldMatch = document.getElementById( el.dataset.match );
+    test: (el) => {
+      const shouldMatch = document.getElementById( el.dataset.match );
       return shouldMatch && shouldMatch.value === el.value;
     }
   }
@@ -68,15 +68,15 @@ The test function must return `true`, `false`, or a custom `ValidityState` you w
       {
         match: '[data-maxlength], [maxlength]',
         message: 'Too many characters',
-        test: el => {
-          var length = +( el.dataset.maxlength || el.getAttribute( 'maxlength' ));
+        test: (el) => {
+          const length = parseInt( el.dataset.maxlength || el.getAttribute( 'maxlength' ), 10);
           return el.value.length <= length ? true : 'tooLong';
         }
       },
       {
         match: '[data-match]',
-        test: el => {
-          var shouldMatch = document.getElementById( el.dataset.match );
+        test: (el) => {
+          const shouldMatch = document.getElementById( el.dataset.match );
           return shouldMatch && shouldMatch.value === el.value;
         }
       }
@@ -121,7 +121,7 @@ Set custom error messages on the form elements by passing an object with `[eleme
     }).then(r => r.json());
 
     /*
-    * backendResponse.errors object will look like this:
+    * errors object should look like this:
     * {
     *   'postal-code': 'Cannot deliver to this postal code'
     * }
