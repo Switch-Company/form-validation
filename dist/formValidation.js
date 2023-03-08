@@ -1,6 +1,6 @@
 /**
  * @switch-company/form-validation - Extend checkvalidity of forms and trigger invalid and valid events on fields
- * @version v1.0.1
+ * @version v2.1.0
  * @link https://www.npmjs.com/package/@switch-company/form-validation
  * @license ISC
  **/
@@ -38,12 +38,14 @@
   /**
    * check the validity of an input/select/textarea element
    * @param {HTMLElement} el - the input/select/textarea to test
+   * @param {HTMLElement} context - the root element the validation was called from
    * @param {array} customValidators - array of custom validators to test against
    */
-  function checkValidity(el, customValidators) {
+  function checkValidity(el, context, customValidators) {
     var valid = el.validity.valid;
     var wasInvalid = invalidValues.has(el.name);
     var status = {
+      context: context,
       validityState: 'valid',
       wasInvalid: wasInvalid
     };
@@ -63,6 +65,7 @@
       if (validityStates.includes('customError')) {
         // get the previous invalid value of the input
         var previousValue = invalidValues.get(el.name);
+
         // only consider the customError state if the input
         // was not previously invalid or if it's value didn't change
         if (!wasInvalid || previousValue === el.value) {
@@ -220,8 +223,8 @@
 
     createClass(Validator, [{
       key: '_checkSingleValidity',
-      value: function _checkSingleValidity(element) {
-        var isValid = this._fieldValidation(element, this._customRules);
+      value: function _checkSingleValidity(element, context) {
+        var isValid = this._fieldValidation(element, context, this._customRules);
         var invalidIndex = this._invalid.indexOf(element);
 
         if (!isValid && invalidIndex === -1) {
@@ -241,7 +244,7 @@
 
         // IE doesn't have an elements property on fieldsets
         if (!context.elements && context.nodeName !== 'FIELDSET') {
-          return this._checkSingleValidity(context);
+          return this._checkSingleValidity(context, context);
         }
 
         this._invalid.length = 0;
@@ -253,7 +256,7 @@
             return;
           }
 
-          _this._checkSingleValidity(element);
+          _this._checkSingleValidity(element, context);
         });
 
         return this._invalid.length === 0;
@@ -282,9 +285,9 @@
        * Check a field validity
        * @param {HTMLElement} element - HTMLElement to check the validity from (input, textarea, select)
        */
-      value: function _checkSingleValidity(element) {
+      value: function _checkSingleValidity(element, context) {
         // use the parent method
-        var isValid = get(FormValidator.prototype.__proto__ || Object.getPrototypeOf(FormValidator.prototype), '_checkSingleValidity', this).call(this, element);
+        var isValid = get(FormValidator.prototype.__proto__ || Object.getPrototypeOf(FormValidator.prototype), '_checkSingleValidity', this).call(this, element, context);
         // check if input is inside a fieldset
         var fieldset = element.closest('fieldset');
 
@@ -379,7 +382,7 @@
           // check input validity
           // if the validation message changed
           if (validationMessage !== customMessage) {
-            _this2._checkSingleValidity(element);
+            _this2._checkSingleValidity(element, _this2.el);
           }
         });
       }
